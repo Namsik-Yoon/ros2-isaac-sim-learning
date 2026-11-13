@@ -4,7 +4,7 @@ Isaac Sim 6.2 편집기를 GPU 서버에서 실행하고, 별도의 NVIDIA WebRT
 
 ## 현재 검증 범위
 
-검증일: 2026-11-13. 에이전트가 같은 서버에서 실행한 headless Chrome으로 확인한 결과다. 사용자의 다른 PC에서의 접속·조작은 별도 확인 대상이다.
+검증일: 2026-11-13. 에이전트는 같은 서버의 headless Chrome으로 입력·물리를 검증했다. 이후 사용자가 다른 PC의 Chrome/Edge 일반 창에서 편집기 화면 표시를 확인했다. 사용자의 물리 실험 수행 여부는 별도로 기록한다.
 
 | 항목 | 상태 |
 | --- | --- |
@@ -14,7 +14,7 @@ Isaac Sim 6.2 편집기를 GPU 서버에서 실행하고, 별도의 NVIDIA WebRT
 | ROS 내부 런타임 | Jazzy `rclpy` 로드 성공. 실제 ROS 토픽 왕복은 미검증 |
 | UI 마우스·키보드 입력 | 파일 탐색·파일명 입력·장면 열기·실행 버튼 조작 확인 |
 | 최소 장면의 물리·Play/Pause/Stop | 상자 낙하·바닥 정착, Pause, Stop 시 초기 위치 복원 확인 |
-| 다른 PC의 사용자 접속 | 미검증 |
+| 다른 PC의 사용자 접속 | Chrome/Edge 일반 창에서 사용자 화면 표시 확인. 최초 대기 고착은 서버 재시작 후 복구 |
 | 주행로봇·ROS 제어 | 미구현·미검증 |
 
 
@@ -106,3 +106,17 @@ docker logs --tail 100 ros2-isaac-learning-viewer
 | 화면은 보이지만 로봇 토픽 없음 | 장면·ROS 그래프·Play 상태·Domain ID·QoS. 영상 수신으로 ROS 연결을 판정하지 않음 |
 
 서버의 ROS 기본 설정은 Jazzy·Fast DDS·Domain 42다. 내부 런타임 로드 성공과 외부 ROS 컨테이너와의 실제 토픽 왕복은 별도이며, 후자는 주행 그래프 구성 단계에서 검증한다. OS·GPU 드라이버·방화벽 설정은 이 스크립트가 변경하지 않는다.
+
+### `Waiting for stream`이 계속 표시될 때
+
+2026-11-13 다른 PC의 Chrome/Edge에서 페이지는 열리지만 대기 화면에 머무르는 증상이 있었다. 서버 준비 완료, TCP signaling 및 양방향 UDP/STUN 통신을 확인했고, 호스트 방화벽의 LAN 입력 차단은 발견하지 않았다. 탭을 닫고 다시 여는 것만으로는 풀리지 않았으나 Isaac 서버 재시작 후 사용자가 편집기 표시를 확인했다. 세션 상태가 영향을 준 것으로 추정하며 내부 원인은 확정하지 않았다. TCP 연결 수만으로 브라우저 탭 수를 단정하지 않는다.
+
+먼저 다른 스트리밍 클라이언트를 종료하고 탭 하나로 접속한다. 서버가 준비됐는데도 같은 증상이 지속되면 아래 복구를 사용할 수 있다. 재시작은 메모리의 장면을 닫으므로, 조작 가능한 다른 세션이 있다면 먼저 장면을 저장한다. `/workspace`에 저장한 파일은 보존된다.
+
+```bash
+docker restart --timeout 20 ros2-isaac-learning-ui
+docker inspect --format '{{.State.Health.Status}}' ros2-isaac-learning-ui
+docker logs --since 2m ros2-isaac-learning-ui
+```
+
+이번 재시작의 `Full Streaming App is loaded`와 `healthy`를 확인한 뒤 브라우저를 새로고침한다. 이전 실행의 준비 완료 로그를 재사용하지 않는다. 빈 Stage가 나오면 `File > Open`에서 `/workspace/ui-contact-lab.usda`를 다시 연다. 캐시 삭제·방화벽 전체 해제·GPU 드라이버 변경은 이 복구에 필요하지 않았다.

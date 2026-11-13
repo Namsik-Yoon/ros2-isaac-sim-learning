@@ -19,7 +19,7 @@
 | Isaac Sim 편집기 서버 | `Full Streaming App is loaded` 확인 |
 | Isaac Sim 브라우저 영상 | 같은 서버의 headless Chrome에서 1920×1080 비디오 수신 확인 |
 | Isaac Sim UI 입력·최소 물리 장면 | 파일 열기·키보드 입력, 상자 낙하·바닥 정착·Pause·Stop 초기 위치 복원 확인 |
-| 다른 PC의 사용자 접속 | 아직 검증하지 않음 |
+| 다른 PC의 사용자 접속 | Chrome/Edge 일반 창의 편집기 표시를 사용자 확인. 최초 대기 고착은 서버 재시작 후 복구 |
 | Isaac 내부 ROS 런타임 | Jazzy `rclpy` 로드 성공 |
 | 외부 ROS 토픽 왕복·주행 제어 | 아직 검증하지 않음 |
 | 드론 환경 | 조사 단계, 아직 설치·검증하지 않음 |
@@ -52,6 +52,10 @@ bash scripts/check-ros.sh
 
 [`scripts/isaac-ui.sh`](../scripts/isaac-ui.sh)로 Isaac 6.2 서버와 별도 Node 22 기반 NVIDIA viewer를 실행했다. 공식 viewer 생성기 버전은 `@nvidia/create-ov-web-rtc-app@2.1.5`이며, SDK는 `@nvidia/ov-web-rtc@6.8.2`로 고정했다. LAN HTTP에서 `crypto.randomUUID`가 없는 경우를 처리하도록 수정한 뒤 재빌드했다. 서버의 `Full Streaming App is loaded`와 같은 서버의 headless Chrome에서 1920×1080 비디오 수신을 확인했다.
 
-브라우저에서 파일 탐색·파일명 입력으로 `/workspace/ui-contact-lab.usda`를 열고, Play로 상자 낙하·바닥 정착을 관찰했다. Pause 후 정지 화면과 Stop 후 초기 위치 복원을 확인했다. 접촉 힘·정확한 정착 오차는 측정하지 않았다. 원본 USD와 개인 사본을 분리하며, 검증 화면은 개인 `.learning/isaac-contact-*.png`에 보관했다. 다른 PC의 네트워크 경로와 사용자의 직접 조작은 아직 확인하지 않았다. 내부 Jazzy `rclpy`가 로드됐지만 외부 ROS 노드와의 토픽 왕복·주행 그래프는 아직 검증하지 않았다. 접속·저장·진단 방법은 [UI 실행 안내](isaac-ui.md)를 따른다.
+브라우저에서 파일 탐색·파일명 입력으로 `/workspace/ui-contact-lab.usda`를 열고, Play로 상자 낙하·바닥 정착을 관찰했다. Pause 후 정지 화면과 Stop 후 초기 위치 복원을 확인했다. 접촉 힘·정확한 정착 오차는 측정하지 않았다. 원본 USD와 개인 사본을 분리하며, 검증 화면은 개인 `.learning/isaac-contact-*.png`에 보관했다. 이후 다른 PC의 Chrome/Edge에서 사용자가 편집기 화면 표시를 확인했다. 사용자의 물리 실험 수행은 아직 확인하지 않았다. 내부 Jazzy `rclpy`가 로드됐지만 외부 ROS 노드와의 토픽 왕복·주행 그래프는 아직 검증하지 않았다. 접속·저장·진단 방법은 [UI 실행 안내](isaac-ui.md)를 따른다.
 
 검증 중 중복 브라우저 연결에서 `NVST_R_BUSY`를 관찰했고, 검증 클라이언트를 정리한 뒤 단일 연결로 확인했다. headless 서버의 GLFW 창 초기화 경고가 남았으나 위 UI·물리 조작은 동작했다. 외부 NVIDIA 자산 로딩은 이번 최소 장면에서 시험하지 않았다.
+
+### 원격 대기 화면 복구
+
+사용자가 `Waiting for stream` 지속을 보고했다. TCP signaling과 양방향 UDP/STUN은 관측됐고, 호스트의 nft/legacy INPUT 규칙에는 해당 LAN 입력 차단이 없었다. 검증용 브라우저 프로세스가 종료됐음을 확인했으며, 사용자 탭 재접속으로는 해결되지 않았다. Isaac 서버만 재시작해 새로운 `Full Streaming App is loaded`와 healthy 상태를 확인한 뒤 사용자가 편집기 표시를 보고했다. 방화벽·OS·드라이버는 바꾸지 않았다. 세션 상태 문제로 추정하나 정확한 내부 원인은 미확정이다. [복구 절차](isaac-ui.md#waiting-for-stream이-계속-표시될-때)를 기록했다.
