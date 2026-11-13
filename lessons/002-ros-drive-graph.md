@@ -60,7 +60,9 @@ Action Graph 왼쪽 검색 목록에서 다음 노드를 끌어 넣는다.
 - **ROS2 Subscribe Twist** 1개
 - **Break 3-Vector** 2개 — 하나는 선속도용, 다른 하나는 각속도용
 
-노드를 선택하고 Property의 입력값을 설정한다.
+노드의 **제목 부분**을 클릭해 선택하고, 별도의 **Property 패널**에서 값을 편집한다. 그래프 안의 색깔 포트 옆 글자는 연결할 항목의 이름이다. Property 검색창에 이전 실험의 `Target Velocity` 같은 검색어가 남아 있으면 지운다. `Inputs`가 접혀 있으면 펼친 다음 아래 값을 설정하고 문자열 입력은 Enter로 확정한다.
+
+Property가 보이지 않으면 **Window > Property**로 연다(설치된 6.2 메뉴 소스에서 확인). 그래프 선택이 Property에 반영되지 않으면 Stage에서 해당 그래프를 펼쳐 같은 노드를 선택해도 된다. [공식 노드 Property 편집 절차](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/introduction/quickstart_isaacsim_robot.html#control-the-robot)
 
 | 노드 | 필드 | 값 |
 | --- | --- | --- |
@@ -70,15 +72,17 @@ Action Graph 왼쪽 검색 목록에서 다음 노드를 끌어 넣는다.
 
 `Node Namespace=/`로 루트 namespace를 명시한다. 설치된 6.2 Bridge는 이 필드가 비어 있으면 상위 prim의 `isaac:namespace`를 수집하며, Topic Name 앞의 `/`만으로 그 접두사를 무시하지 않는다. 실제 토픽 이름은 아래 endpoint 조회로 확인한다.
 
-각 노드의 출력 포트에서 입력 포트로 선을 연결한다. 아래 포트 이름은 설치된 노드 정의 기준이며 UI에는 띄어쓰기된 이름으로 표시될 수 있다.
+Break 3-Vector 두 개에는 따로 상수값을 입력하지 않는다. ROS 노드에서 들어오는 벡터를 연결하고 필요한 출력 성분을 사용한다. 사용자 첨부 화면에서는 이 노드의 입력이 **Vector**로 표시되며, 노드 정의의 내부 이름은 `tuple`이다.
+
+각 노드의 출력 포트에서 입력 포트로 선을 연결한다. 아래 표는 화면 표시명과 내부 이름을 함께 적었다.
 
 | 출력 포트 | 연결할 입력 포트 |
 | --- | --- |
 | On Playback Tick: `tick` | ROS2 Subscribe Twist: `execIn` |
 | ROS2 Context: `context` | ROS2 Subscribe Twist: `context` |
-| ROS2 Subscribe Twist: `linearVelocity` | 선속도용 Break 3-Vector: `tuple` |
+| ROS2 Subscribe Twist: `linearVelocity` (Linear Velocity) | 선속도용 Break 3-Vector: **Vector** (`tuple`) |
 | 선속도용 Break 3-Vector: `x` | Differential Controller: `linearVelocity` (Desired Linear Velocity) |
-| ROS2 Subscribe Twist: `angularVelocity` | 각속도용 Break 3-Vector: `tuple` |
+| ROS2 Subscribe Twist: `angularVelocity` (Angular Velocity) | 각속도용 Break 3-Vector: **Vector** (`tuple`) |
 | 각속도용 Break 3-Vector: `z` | Differential Controller: `angularVelocity` (Desired Angular Velocity) |
 
 생성 도구가 만든 두 controller의 Tick 연결은 유지한다. Subscribe Twist의 `execOut`으로 대체하지 않는다. 컨트롤러는 새 ROS 메시지가 없는 프레임에도 실행해야 한다. 현재 장면은 `metersPerUnit=1`이므로 선속도 수치에 추가 스케일 변환을 하지 않는다. [공식 ROS 주행 그래프 설명](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/ros2_tutorials/tutorial_series/tutorial_ros2_drive_turtlebot.html#graph-explained)
