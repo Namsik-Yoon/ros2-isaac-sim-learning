@@ -5,8 +5,9 @@
 ## 현재 확인한 범위
 
 - 기존 ROS 이미지에 GPU를 전달해 `nvidia-smi` 실행 성공.
-- Isaac 6.2 headless Compatibility Checker에서 Vulkan GPU 인식, `PASSED`, 종료 코드 0 확인. 전체 장면의 물리·RTX 출력은 별도 검증 필요.
-- 현재 에이전트 셸은 DISPLAY가 없으므로 headless 검사 후 WebRTC 화면 연결을 검토한다.
+- Isaac 6.2 headless Compatibility Checker에서 Vulkan GPU 인식, `PASSED`, 종료 코드 0 확인.
+- 후속 UI 서버에서 `Full Streaming App is loaded`와 같은 서버의 headless Chrome에서 1920×1080 비디오 수신 확인. 호스트 DISPLAY 없이 WebRTC로 편집기 화면을 전달한다.
+- 내부 Jazzy `rclpy` 로드 성공. UI 입력·장면 물리·다른 PC 접속·외부 ROS와 실제 토픽 왕복은 검증 범위를 구분한다. 최신 결과는 [UI 실행 안내](isaac-ui.md)에 기록한다.
 - 드라이버·OS 변경 없이 컨테이너로 검사한다. `/mnt` 등 데이터 경로는 실제 mount 상태를 확인한 후 선택한다.
 
 ## 이미지와 검사
@@ -24,8 +25,8 @@ ACCEPT_EULA=Y bash scripts/check-isaac.sh
 
 프로세스 종료 코드와 `System checking result: PASSED` 출력이 모두 있어야 검사 통과다. 실패 시 원문에서 OS·GPU·드라이버·Vulkan·렌더러 중 실패한 항목을 확인한다. 실제 사용한 이미지 ID/digest는 실행별 `image.txt`에 기록한다. 특정 이미지를 재현하려면 `ISAAC_IMAGE`로 로컬에 준비한 digest 참조를 지정할 수 있다.
 
-## 다음 검증
+## UI 실행으로 이어가기
 
-Compatibility Checker는 통과했다. 다음은 최소 물리 장면·렌더링 → WebRTC 화면 → ROS Bridge → 주행 장면 순으로 진행한다. WebRTC 포트와 캐시 권한은 해당 구성에서 명시한다. 장면이 보이기 전에는 GUI 준비 완료로 기록하지 않는다.
+Compatibility Checker와 같은 서버의 브라우저 영상 수신을 확인했다. 실제 실습은 [UI 실행 안내](isaac-ui.md)에 따라 편집기에 접속해 진행한다. 이 안내에서 WebRTC 포트, 캐시 권한, 시작·종료, 저장 장면 경로를 명시한다. 최소 물리 장면의 입력·실행, 사용자 PC 접속, ROS 왕복과 주행 제어는 각각의 결과를 [검증 기록](validation.md)에 추가한다.
 
 공식 참고: [시스템 요구사항](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/installation/requirements.html), [컨테이너 설치](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/installation/install_container.html), [WebRTC 클라이언트](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/installation/manual_livestream_clients.html).

@@ -24,7 +24,7 @@ bash scripts/ros-shell.sh
 
 통신 확인은 `check-ros.sh`의 PASS 출력으로 판단합니다. 실제 최종 검증 기록은 [검증 기록](validation.md)에 남깁니다. 수업 실행·이해도는 별도입니다.
 
-## B. Isaac Sim 주행 — 컨테이너 호환성 검사 통과, 화면·주행 미검증
+## B. Isaac Sim UI — UI 조작·최소 물리 확인, 주행·ROS 왕복 미검증
 
 후보 조합은 Ubuntu 24.04 + ROS 2 Jazzy + Isaac Sim 6.2.0입니다. ROS workspace가 필요하면 `IsaacSim-6.2.0` 태그에 맞춥니다. [NVIDIA 공식 ROS 설치 안내](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/installation/install_ros.html)
 
@@ -36,7 +36,9 @@ bash scripts/ros-shell.sh
 
 지원 OS로 이전하는 경로는 [이전 검토 문서](ubuntu-migration.md)에 남겨둡니다. 현재 NVIDIA Container Toolkit 1.17.8과 Docker GPU runtime가 이미 설치되어 있고, 기존 ROS 이미지의 GPU 접근을 실제 검증했습니다. [Isaac 컨테이너 실행 검사](isaac-container.md)도 실제로 실행해 `PASSED`와 종료 코드 0을 확인했습니다. 이미지는 설치됐으며 결과와 한계는 [검증 기록](validation.md)에 남겼습니다. Ubuntu 20.04 공식 지원과 이 PC에서의 실제 구동 여부는 구분합니다. OS·파티션·드라이버 변경은 수행하지 않았습니다.
 
-Compatibility Checker → 작은 물리·렌더링 장면 → WebRTC 화면 → ROS Bridge → 주행 제어 순으로 검증합니다. 현재 에이전트 셸에는 DISPLAY가 없습니다. 장면의 ROS 도메인 42, 시간·좌표·QoS 계약은 실제 연결에서 기록합니다. 컨테이너 GPU 접근 성공만으로 Isaac 실행 완료를 기록하지 않습니다.
+Isaac 6.2 편집기와 별도 Node 22 기반 NVIDIA WebRTC viewer를 실행했습니다. 같은 서버의 headless Chrome에서 1920×1080 비디오 수신을 확인했습니다. 서버의 `Full Streaming App is loaded`와 내부 Jazzy `rclpy` 로드도 확인했습니다. 같은 브라우저에서 장면 파일을 열고 상자 낙하·바닥 정착·Pause·Stop 초기 위치 복원을 확인했습니다. 다른 PC에서의 사용자 접속, 외부 ROS와 실제 토픽 왕복, 주행 제어는 별도 검증 대상입니다. UI 입력·물리의 최신 상태는 [UI 실행 안내](isaac-ui.md)와 [검증 기록](validation.md)에 기록합니다.
+
+브라우저 접속, 시작·종료, 포트 설정과 저장 장면 경로는 [UI 실행 안내](isaac-ui.md)를 따릅니다. 장면은 컨테이너 `/workspace`와 연결된 `.learning/isaac-runtime/stages/`에 보존합니다. 호스트 DISPLAY 없이 서버 편집기를 스트리밍하며, 장면의 ROS 도메인 42, 시간·좌표·QoS 계약은 실제 연결에서 기록합니다. 영상 수신 성공과 ROS 제어 성공을 구분합니다.
 
 ## C. 드론 — 호환성 조사 단계
 
