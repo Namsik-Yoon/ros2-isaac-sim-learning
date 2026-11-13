@@ -36,3 +36,7 @@ Stop 상태에서 상자를 선택하고 Property에서 `collision`을 검색한
 Stop 후 `Collision Enabled`를 켜서 기준 조건으로 복원한다. 보존하려면 UI에서 `/workspace/` 아래에 저장한다. 다음 작업은 주행로봇 자산을 열어 바닥 접촉과 바퀴 관절을 확인하고, Action Graph에 ROS 속도 입력을 연결하는 것이다.
 
 실습 절차: [002 UI 장면과 주행 실험](../lessons/002-first-motion.md).
+
+## 후속 준비
+
+사용자가 6.2 Multiphysics TurtleBot3를 UI에 추가하고 화면에 표시됨을 확인했다. 에이전트는 자산 원문에서 Physics variant와 바퀴 관절·치수를 확인해 [다음 UI 절차](../lessons/002-first-motion.md#로봇-물리-설정과-관절-확인)에 정리했다. 로봇의 물리 정착·주행·ROS 연결은 아직 검증하지 않았다.

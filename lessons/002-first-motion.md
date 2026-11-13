@@ -54,7 +54,26 @@
    ```
 
 4. Stop 상태에서 로봇의 표시 여부와 추가된 루트 prim의 실제 경로를 확인하고 사본을 저장한다. 이번 단위 작업은 로봇 배치까지다.
-5. 이후 Play 전에 로봇의 `Physics` variant와 articulation을 확인한다. 원본에는 `physics`, `physx`, `mujoco`, `none` variant가 있으며, 이 프로젝트의 PhysX에 맞는 설정과 실제 적용 결과를 확인해야 한다. `ROS`와 `Sensors`의 원본 기본값은 `none`이다. 화면에 모델이 보인다는 사실만으로 물리·ROS가 설정됐다고 보지 않는다. UI의 정확한 variant 선택 위치와 물리 실행은 다음 검증 대상이다.
+5. 다음의 물리 설정 확인으로 이어간다. 원본의 `Physics` 선택은 비어 있고, `ROS`와 `Sensors`는 `none`이다. 화면에 모델이 보인다는 사실만으로 물리·ROS가 설정됐다고 보지 않는다.
+
+### 로봇 물리 설정과 관절 확인
+
+사용자가 위 자산이 화면에 표시되는 것을 확인했다(2026-11-13). 아래 UI 경로는 6.2 공식 [Property의 Variants 선택 안내](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/openusd_tuning_tutorials/tutorial_02_inspect_asset.html)를 참고했고, 관절·크기는 실제 자산 원문에서 확인했다. 이 로봇의 물리 실행은 아직 사용자 관찰을 기다리는 상태다.
+
+1. Stop 상태에서 Stage의 로봇 최상위 `turtlebot3_burger`를 선택한다. Property 검색창을 비운다. 바퀴 링크를 개별적으로 이동하지 않고 로봇 루트의 `Transform > Translate`를 X=`0`, Y=`0`, Z=`0.05` m로 두어 바닥 바로 위에 배치한다.
+2. 같은 로봇 루트를 선택한 상태에서 Property의 `Variants`를 펼쳐 `Physics`를 `physx`(PhysX)로 선택한다. 이미 선택되어 있으면 유지한다. `ROS`, `Sensors`는 `none`으로 둔다. 위치를 바꾼 뒤에도 이 선택이 유지되는지 확인한다.
+3. Stage의 로봇 아래 `Physics`를 펼쳐 `wheel_left_joint`, `wheel_right_joint`를 확인한다. 로봇의 실제 루트 경로를 `<R>`이라고 하면 아래 표의 상대 구조를 사용한다.
+4. Play 후 로봇 전체가 조금 내려와 바닥에 정착하는지 관찰한다. 공중에 계속 고정되거나 부품이 분리되거나 바닥을 통과하면 그 결과를 기록한다. Stop으로 초기 상태에 돌아간 뒤 저장한다. 아직 이동 명령을 연결하지 않았으므로 전진·회전은 이 단계의 판정 대상이 아니다.
+
+| 자산 원문에서 확인한 항목 | 값/경로 |
+| --- | --- |
+| Articulation Root | `<R>/Geometry/base_footprint/base_link` |
+| 바퀴 관절 | `<R>/Physics/wheel_left_joint`, `<R>/Physics/wheel_right_joint` |
+| 바퀴 collider 반경 | `0.033 m` |
+| 바퀴 중심 간격 | `0.16 m` (`y=±0.08`) |
+| 바퀴 angular drive | 양쪽에 `PhysicsDriveAPI:angular`, damping=`10000000`이 작성됨 |
+
+이는 원본 파일의 설정 확인이며 실행 중 pose·토크·제어 성능 측정값이 아니다. 일반 TurtleBot 주행 튜토리얼의 반경 `0.025`와 현재 자산의 collider `0.033`이 다르므로, 이후 Differential Controller에는 실제 사용한 자산 기준으로 치수를 확정한다. 근거 파일은 위 자산 폴더의 `payloads/base.usda`, `payloads/robot.usda`, `payloads/Physics/physics.usda`, `payloads/Physics/physx.usda`다.
 
 이 사본은 NVIDIA 원본 자산을 참조한다. 다운받은 원본·캐시 전체를 Git에 복사하지 않고, 공개할 자체 장면에는 참조 경로와 변경값을 남긴다.
 
