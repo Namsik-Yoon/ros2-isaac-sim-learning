@@ -1,6 +1,6 @@
 # 002 — Isaac UI에서 주행 장면 구성과 실패 조건 실험
 
-**상태: 사용자가 UI에서 최소 접촉 실험, TurtleBot3 표시·바퀴 관절·바닥 정착을 확인했다. 바퀴 구동·ROS 주행 연결·waypoint 제어기·명령 유효시간 정책·수신측 watchdog은 아직 구현/검증하지 않았다.** 화면과 최소 물리 장면의 최신 검증 상태는 [환경 안내](../environments/README.md)를 따른다. 아래 제어 계약과 판정 기준은 제안이며 현재 로봇의 주행을 보장하지 않는다.
+**상태: 사용자가 UI에서 최소 접촉 실험, TurtleBot3 표시·바퀴 관절·바닥 정착·직접 바퀴 구동을 확인했다. ROS 주행 연결·waypoint 제어기·명령 유효시간 정책·수신측 watchdog은 아직 구현/검증하지 않았다.** 화면과 최소 물리 장면의 최신 검증 상태는 [환경 안내](../environments/README.md)를 따른다. 아래 제어 계약과 판정 기준은 제안이며 ROS를 통한 주행을 보장하지 않는다.
 
 목표는 Isaac Sim UI에서 장면·로봇·실험 조건을 직접 구성하고, Python ROS 2 노드로 목표점 주행을 연결하며, 명령 중단·pause/resume·reset에서 무엇이 잘못되는지 관측하는 것이다. Stage·Property·Action Graph와 Viewport가 주 작업 공간이다. 이 연결은 이후 카메라 기반 모델, 상태 추정, Nav2를 붙일 기준선이 된다. `001`의 talker/listener나 기초 퀴즈 완료는 선수 조건이 아니다.
 
@@ -79,7 +79,7 @@
 
 ### UI에서 바퀴 속도 직접 입력
 
-ROS 연결 전에 바퀴 구동과 접촉으로 차체가 움직이는지 확인한다. 이후 ROS 메시지가 보여도 움직이지 않을 때 비교할 기준선이다. 준비 상태는 위 정착 확인까지이며 Action Graph의 속도 명령은 아직 없다. 이 절차의 실제 주행 결과는 아직 확인하지 않았다.
+ROS 연결 전에 바퀴 구동과 접촉으로 차체가 움직이는지 확인한다. 이후 ROS 메시지가 보여도 움직이지 않을 때 비교할 기준선이다. 사용자는 아래 직진·회전 안내 후 정상적으로 움직인다고 보고했다(2026-11-13). 정확한 속도·궤적은 계측하지 않았고 Action Graph의 속도 명령은 아직 없다.
 
 입력은 두 바퀴 관절의 `Angular Drive > Target Velocity`이고, 관찰 출력은 차체의 직진·회전이다. UI 항목은 설치된 Isaac Sim 6.2의 Property 확장과 공식 [joint drive 안내](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/robot_setup_tutorials/tutorial_gui_simple_robot.html#add-a-joint-drive)에서 확인했다. angular USD drive의 속도 단위는 **deg/s**다. 나중에 Articulation Controller에 넣는 **rad/s**와 구분한다. 단위 근거는 같은 문서의 Add Controller 주석과 [USD Drive API](https://openusd.org/release/api/class_usd_physics_drive_a_p_i.html)다.
 
@@ -101,7 +101,7 @@ ROS 연결 전에 바퀴 구동과 접촉으로 차체가 움직이는지 확인
 
 ### 제어 연결
 
-주행 가능한 로봇 자산을 로드하고 바닥 접촉과 초기 pose를 확인한다. Stage에서 로봇의 루트 prim을 선택하고 `Window > Graph Editors > Action Graph`에서 그래프를 연다. 공식 TurtleBot 예제의 prim 이름·바퀴 치수를 다른 로봇에 그대로 복사하지 않는다.
+다음 실습은 [UI에서 ROS 2 주행 그래프 연결](002-ros-drive-graph.md)을 따른다. 설치된 6.2의 Differential Controller 생성 도구로 기본 그래프를 만든 뒤 ROS 입력 노드를 UI에서 연결한다. 정확한 필드값·포트 연결·초기화·현재 검증 범위는 해당 문서에 정리했다. 공식 TurtleBot 예제의 prim 이름·바퀴 치수를 다른 로봇에 그대로 복사하지 않는다.
 
 그래프에서 **ROS 입력 → 차체 속도 → 좌우 바퀴 속도 → articulation 제어**의 연결을 눈으로 따라가며 아래 설정을 실제 선택한 로봇에 맞춘다. 그래프와 로봇을 저장한 다음 Play로 연결을 검증한다.
 
