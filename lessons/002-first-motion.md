@@ -1,6 +1,6 @@
 # 002 — Isaac UI에서 주행 장면 구성과 실패 조건 실험
 
-**상태: UI 중심 실험 계획. Isaac 컨테이너 호환성 검사는 통과했다. 주행 장면·Bridge·waypoint 제어기·명령 유효시간 정책·수신측 watchdog은 아직 구현/검증하지 않았다.** 화면과 최소 물리 장면의 최신 검증 상태는 [환경 안내](../environments/README.md)를 따른다. 아래 계약과 판정 기준은 제안이며 현재 로봇의 동작을 보장하지 않는다.
+**상태: 사용자가 UI에서 최소 접촉 실험, TurtleBot3 표시·바퀴 관절·바닥 정착을 확인했다. 바퀴 구동·ROS 주행 연결·waypoint 제어기·명령 유효시간 정책·수신측 watchdog은 아직 구현/검증하지 않았다.** 화면과 최소 물리 장면의 최신 검증 상태는 [환경 안내](../environments/README.md)를 따른다. 아래 제어 계약과 판정 기준은 제안이며 현재 로봇의 주행을 보장하지 않는다.
 
 목표는 Isaac Sim UI에서 장면·로봇·실험 조건을 직접 구성하고, Python ROS 2 노드로 목표점 주행을 연결하며, 명령 중단·pause/resume·reset에서 무엇이 잘못되는지 관측하는 것이다. Stage·Property·Action Graph와 Viewport가 주 작업 공간이다. 이 연결은 이후 카메라 기반 모델, 상태 추정, Nav2를 붙일 기준선이 된다. `001`의 talker/listener나 기초 퀴즈 완료는 선수 조건이 아니다.
 
@@ -43,7 +43,7 @@
 
 ### TurtleBot3 배치
 
-최소 접촉 실험 다음에는 기존 바닥을 유지하고 로봇을 추가한다. 공식 6.2 [주행로봇 자산 목록](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/assets/usd_assets_robots_wheeled.html#turtlebot)의 Multiphysics 경로를 사용한다. 아래 최상위 USD와 base·physics·physx payload는 서버 HTTP 200 및 텍스트 내용을 확인했다. UI 로딩·물리 실행·ROS 연결은 아직 검증하지 않았다. 같은 문서의 기존 `Robots/Turtlebot/Turtlebot3/turtlebot3_burger.usd` 경로는 404를 반환했으므로 사용하지 않는다.
+최소 접촉 실험 다음에는 기존 바닥을 유지하고 로봇을 추가한다. 공식 6.2 [주행로봇 자산 목록](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/assets/usd_assets_robots_wheeled.html#turtlebot)의 Multiphysics 경로를 사용한다. 아래 최상위 USD와 base·physics·physx payload는 서버 HTTP 200 및 텍스트 내용을 확인했다. 이후 사용자가 UI 표시·바퀴 관절·바닥 정착을 확인했으며 주행·ROS 연결은 미검증이다. 같은 문서의 기존 `Robots/Turtlebot/Turtlebot3/turtlebot3_burger.usd` 경로는 404를 반환했으므로 사용하지 않는다.
 
 1. Stop하고 상자의 `Collision Enabled`를 켠다. `File > Save As`로 `/workspace/turtlebot-drive.usda`에 작업 사본을 저장한다.
 2. 사본의 Stage에서 `/World/TestBody`만 삭제한다. `/World/Ground`, `/World/PhysicsScene`, 조명은 유지한다.
@@ -58,7 +58,7 @@
 
 ### 로봇 물리 설정과 관절 확인
 
-사용자가 위 자산이 화면에 표시되는 것을 확인했다(2026-11-13). 아래 UI 경로는 6.2 공식 [Property의 Variants 선택 안내](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/openusd_tuning_tutorials/tutorial_02_inspect_asset.html)를 참고했고, 관절·크기는 실제 자산 원문에서 확인했다. 이 로봇의 물리 실행은 아직 사용자 관찰을 기다리는 상태다.
+사용자가 위 자산의 화면 표시, 바퀴 관절 두 개, Play 후 바닥 정착을 확인했다(2026-11-13). 아래 UI 경로는 6.2 공식 [Property의 Variants 선택 안내](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/openusd_tuning_tutorials/tutorial_02_inspect_asset.html)를 참고했고, 관절·크기는 실제 자산 원문에서 확인했다. 사용자 보고는 시각적 정착 확인이며 접촉력·정확한 pose 계측은 하지 않았다.
 
 1. Stop 상태에서 Stage의 로봇 최상위 `turtlebot3_burger`를 선택한다. Property 검색창을 비운다. 바퀴 링크를 개별적으로 이동하지 않고 로봇 루트의 `Transform > Translate`를 X=`0`, Y=`0`, Z=`0.05` m로 두어 바닥 바로 위에 배치한다.
 2. 같은 로봇 루트를 선택한 상태에서 Property의 `Variants`를 펼쳐 `Physics`를 `physx`(PhysX)로 선택한다. 이미 선택되어 있으면 유지한다. `ROS`, `Sensors`는 `none`으로 둔다. 위치를 바꾼 뒤에도 이 선택이 유지되는지 확인한다.
@@ -76,6 +76,28 @@
 이는 원본 파일의 설정 확인이며 실행 중 pose·토크·제어 성능 측정값이 아니다. 일반 TurtleBot 주행 튜토리얼의 반경 `0.025`와 현재 자산의 collider `0.033`이 다르므로, 이후 Differential Controller에는 실제 사용한 자산 기준으로 치수를 확정한다. 근거 파일은 위 자산 폴더의 `payloads/base.usda`, `payloads/robot.usda`, `payloads/Physics/physics.usda`, `payloads/Physics/physx.usda`다.
 
 이 사본은 NVIDIA 원본 자산을 참조한다. 다운받은 원본·캐시 전체를 Git에 복사하지 않고, 공개할 자체 장면에는 참조 경로와 변경값을 남긴다.
+
+### UI에서 바퀴 속도 직접 입력
+
+ROS 연결 전에 바퀴 구동과 접촉으로 차체가 움직이는지 확인한다. 이후 ROS 메시지가 보여도 움직이지 않을 때 비교할 기준선이다. 준비 상태는 위 정착 확인까지이며 Action Graph의 속도 명령은 아직 없다. 이 절차의 실제 주행 결과는 아직 확인하지 않았다.
+
+입력은 두 바퀴 관절의 `Angular Drive > Target Velocity`이고, 관찰 출력은 차체의 직진·회전이다. UI 항목은 설치된 Isaac Sim 6.2의 Property 확장과 공식 [joint drive 안내](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/robot_setup_tutorials/tutorial_gui_simple_robot.html#add-a-joint-drive)에서 확인했다. angular USD drive의 속도 단위는 **deg/s**다. 나중에 Articulation Controller에 넣는 **rad/s**와 구분한다. 단위 근거는 같은 문서의 Add Controller 주석과 [USD Drive API](https://openusd.org/release/api/class_usd_physics_drive_a_p_i.html)다.
+
+1. Stop하고 현재 장면을 저장한다. Stage의 `<R>/Physics/wheel_left_joint`를 선택한다. Property에서 `Angular Drive`를 펼친다. 섹션이 보이지 않으면 검색창에 `Target Velocity`를 입력한다. 바퀴 형상이나 링크가 아니라 관절을 선택해야 한다.
+2. `Stiffness=0`을 확인하고 `Damping`은 기존 값을 유지한다(원본은 `10000000`). `Target Velocity=90`을 입력하고 Enter로 확정한다. 오른쪽 `wheel_right_joint`에도 같은 설정을 적용한다.
+3. Play하여 약 3초간 차체가 직진하는지 본 뒤 Stop한다. 시간과 거리를 계측한 시험이 아니므로 화면 관찰 결과만 기록한다.
+4. Stop 상태에서 왼쪽 `Target Velocity=-90`, 오른쪽 `Target Velocity=90`으로 바꾼다. Play하여 제자리 회전하는지 확인한 뒤 Stop한다.
+5. **Stop 후에도 입력한 drive 목표값은 남을 수 있다.** 두 관절의 `Target Velocity`를 모두 `0`으로 바꾸고 저장한다. 다음 Play에서 다시 주행하지 않는 기준 장면으로 복원한다.
+
+| 입력 (왼쪽, 오른쪽; deg/s) | 예상 관측 | 무미끄럼·목표 속도 추종 가정의 계산값 |
+| --- | --- | --- |
+| `(90, 90)` | 로봇 로컬 +X 방향 직진 | 약 `0.052 m/s` |
+| `(-90, 90)` | 위에서 보아 반시계 방향 제자리 회전 | 약 `0.65 rad/s` |
+| `(0, 0)` | 바퀴 목표 속도 0, 정지 상태 유지 | 실제 정지 시간은 미측정 |
+
+계산에는 자산 반경 `r=0.033 m`, 바퀴 간격 `b=0.16 m`, `90 deg/s=π/2 rad/s`를 사용했다. `v=r(ωR+ωL)/2`, `yaw_rate=r(ωR−ωL)/b`의 이상적인 예측이며 실행 측정값이 아니다. 자산의 두 관절 축이 같은 방향이어서 같은 부호가 직진에 해당한다. 다른 자산에서는 관절 축과 바퀴 순서를 다시 확인한다.
+
+실패 조건을 더 비교하려면 Stop에서 `(0, 90)`으로 한쪽만 구동해 곡선 주행 여부를 관찰하고, 끝나면 다시 `(0, 0)`으로 복원한다. 바퀴가 도는데 차체가 움직이지 않으면 지면 접촉·마찰을, 바퀴도 돌지 않으면 선택한 관절·drive 설정·다른 제어기의 덮어쓰기를 확인한다. 높은 원본 damping과 기본 max force만으로 실제 모터의 가속·토크 한계를 재현했다고 보지 않는다.
 
 ### 제어 연결
 
