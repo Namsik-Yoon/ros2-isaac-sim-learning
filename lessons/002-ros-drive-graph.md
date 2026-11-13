@@ -128,3 +128,5 @@ bash scripts/isaac-ros-shell.sh python3 scripts/drive-pulse.py --linear 0 --seco
 - 실험 종료 시 0 속도 메시지로 실제 정지를 확인하고 Stop한다. 두 바퀴의 직접 drive 목표값도 0인지 확인한 뒤 저장한다. reset 이후 이전 메시지·목표값이 남는지는 다음 실험에서 확인한다.
 
 기록할 결과: 그래프 경로·관절 순서·실제 토픽과 타입, 직진·회전·정지 관찰, 실패 시 노드별 입력/출력값. 예상 속도나 문서·소스 점검을 실제 주행 결과로 기록하지 않는다.
+
+전진·정지 기준선 이후에는 [UI에서 Odometry와 Clock 추가](002-odometry-clock.md)로 위치·속도·시간을 관측한다.
