@@ -1,19 +1,17 @@
 # GitHub 연결과 매일 기록
 
-초기 상태는 로컬 Git 저장소입니다. 원격 저장소 URL과 공개 범위가 결정되어 연결·push되어야 GitHub에서 볼 수 있습니다.
+공개 저장소는 [Namsik-Yoon/ros2-isaac-sim-learning](https://github.com/Namsik-Yoon/ros2-isaac-sim-learning)입니다. 기본 브랜치는 `main`이며, 원본 작업 폴더의 `origin`이 이 저장소를 가리킵니다. 개인 평가와 답변은 `.learning/`에 두고 Git 추적에서 제외합니다.
 
 ## 첫 연결
 
-GitHub에서 사용할 계정/조직, 저장소 이름, 공개 여부를 정합니다. 다른 사람이 따라 하게 만들려면 공개 저장소가 맞지만, 개인 평가와 답변은 `.learning/`에 계속 둡니다. 원격 주소가 정해지면 튜터에게 알려 연결할 수 있습니다.
-
-빈 원격 저장소에 연결할 때의 명령 형태입니다. 실제 URL로 바꾸기 전에는 실행하지 않습니다.
+다른 사람은 아래 명령으로 저장소를 내려받고 README의 준비 절차를 따릅니다. 자신의 GitHub에 변경을 올리려면 먼저 자신의 계정으로 fork하고 해당 fork를 복제합니다.
 
 ```bash
-git remote add origin <실제-GitHub-저장소-URL>
-git push -u origin main
+git clone https://github.com/Namsik-Yoon/ros2-isaac-sim-learning.git
+cd ros2-isaac-sim-learning
 ```
 
-기존 원격 저장소에 내용이 있으면 먼저 상태를 확인하고 합칩니다. 강제 push로 덮어쓰지 않습니다.
+기존 작업 폴더에서는 `git remote -v`로 연결을 확인합니다. 기존 원격 저장소에 다른 변경이 있으면 먼저 상태를 확인하고 합칩니다. 강제 push로 덮어쓰지 않습니다.
 
 ## 매일 마무리
 
@@ -23,4 +21,4 @@ git push -u origin main
 4. 해당 코드와 학습일지만 선택해 커밋하고 연결된 원격에 push합니다.
 5. 큰 실습을 실제 재현한 시점에 태그를 남깁니다.
 
-인프라 구축 커밋은 학습자가 실습을 끝냈다는 의미가 아닙니다. 대용량 설치 파일이나 센서 데이터는 Git에 넣지 않습니다. 다른 사람의 학습·재사용 범위까지 정할 라이선스는 공개 시 선택해 추가합니다.
+인프라 구축 커밋은 학습자가 실습을 끝냈다는 의미가 아닙니다. 대용량 설치 파일이나 센서 데이터는 Git에 넣지 않습니다. 학습·재사용 범위를 정할 라이선스는 아직 지정하지 않았습니다.

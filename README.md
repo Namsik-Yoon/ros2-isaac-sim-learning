@@ -8,7 +8,14 @@ Python으로 직접 코드를 작성하고 가상 주행로봇과 드론의 움�
 
 Linux, Python 3.8+, 실행 가능한 Docker가 필요합니다. 이 저장소의 스크립트가 호스트 Ubuntu나 GPU 드라이버를 바꾸지는 않습니다. 다른 PC에서는 아래 환경 안내를 먼저 확인하세요.
 
-저장소 최상위 폴더의 호스트 터미널에서 실행합니다.
+처음 시작한다면 저장소를 내려받습니다. 이미 프로젝트 폴더가 있다면 이 단계는 생략합니다.
+
+```bash
+git clone https://github.com/Namsik-Yoon/ros2-isaac-sim-learning.git
+cd ros2-isaac-sim-learning
+```
+
+이후 명령은 저장소 최상위 폴더의 호스트 터미널에서 실행합니다.
 
 ```bash
 # 처음 내려받은 저장소에서 개인 기록 준비 (기존 파일은 유지)
