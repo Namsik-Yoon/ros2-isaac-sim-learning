@@ -1,6 +1,6 @@
 # 002 — UI에서 ROS 2 주행 그래프 연결
 
-상태: 사용자가 TurtleBot3의 직접 바퀴 구동 후 정상적으로 움직인다고 보고했다. 아래 그래프는 설치된 Isaac Sim 6.2.0 소스와 공식 문서로 확인한 구성 절차이며, 현재 사용자 장면에서 생성·실행한 결과는 아직 확인하지 않았다.
+상태: 사용자가 TurtleBot3의 직접 바퀴 구동, ROS 그래프 작성, Play 실행을 보고했다. 외부 ROS 노드에서 `/cmd_vel` 수신 endpoint와 DDS ACK를 확인했고, 사용자가 5초 전진 명령 후 이동·정지하는 것을 관찰했다. ROS 회전 명령·odometry 계측·연결 중단 시 자동 정지는 아직 검증하지 않았다.
 
 ## 목표와 입출력
 
@@ -79,6 +79,7 @@ Break 3-Vector 두 개에는 따로 상수값을 입력하지 않는다. ROS 노
 | 출력 포트 | 연결할 입력 포트 |
 | --- | --- |
 | On Playback Tick: `tick` | ROS2 Subscribe Twist: `execIn` |
+| On Playback Tick: `deltaSeconds` (Delta Seconds) | Differential Controller: `dt` (Dt) |
 | ROS2 Context: `context` | ROS2 Subscribe Twist: `context` |
 | ROS2 Subscribe Twist: `linearVelocity` (Linear Velocity) | 선속도용 Break 3-Vector: **Vector** (`tuple`) |
 | 선속도용 Break 3-Vector: `x` | Differential Controller: `linearVelocity` (Desired Linear Velocity) |
@@ -87,18 +88,37 @@ Break 3-Vector 두 개에는 따로 상수값을 입력하지 않는다. ROS 노
 
 생성 도구가 만든 두 controller의 Tick 연결은 유지한다. Subscribe Twist의 `execOut`으로 대체하지 않는다. 컨트롤러는 새 ROS 메시지가 없는 프레임에도 실행해야 한다. 현재 장면은 `metersPerUnit=1`이므로 선속도 수치에 추가 스케일 변환을 하지 않는다. [공식 ROS 주행 그래프 설명](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/ros2_tutorials/tutorial_series/tutorial_ros2_drive_turtlebot.html#graph-explained)
 
+실제 화면 검토에서 각속도 `Z`가 `Desired Angular Velocity` 대신 `Max Angular Speed`에 연결된 실수를 확인했다. 명령 입력과 상한 입력을 구분하고, 상한에 들어간 연결은 해제한 뒤 값 `0.3`을 복원한다.
+
 ## 3. Play와 연결 확인
 
 저장한 뒤 **Play**한다. 새로 생성한 그래프와 0 목표값에서는 ROS 명령 전까지 정지해 있는 것이 예상 결과다. 사용자는 UI를 관찰하고, 에이전트는 서버에서 아래 보조 명령으로 실제 수신 endpoint와 타입을 확인한다. 직접 실행할 때도 저장소 최상위의 호스트 셸에서 시작한다.
 
 ```bash
-bash scripts/ros-shell.sh ros2 topic list --no-daemon --spin-time 2
-bash scripts/ros-shell.sh ros2 topic info /cmd_vel --verbose
+bash scripts/isaac-ros-shell.sh ros2 topic list --no-daemon --spin-time 2
+bash scripts/isaac-ros-shell.sh ros2 topic info /cmd_vel --verbose
 ```
 
-`/cmd_vel`에 `geometry_msgs/msg/Twist` 구독 endpoint가 있어야 다음 주행 명령을 보낸다. 토픽이 보이거나 구독자가 있다는 사실만으로 로봇이 메시지를 받아 움직였다고 판정하지 않는다. 이 문서 작성 시점에는 그래프 생성 전이므로 `/parameter_events`, `/rosout`만 조회됐고 `/cmd_vel`은 없었다.
+`/cmd_vel`에 `geometry_msgs/msg/Twist` 구독 endpoint가 있어야 다음 주행 명령을 보낸다. 실제 Play 이후 구독자 1개, 발행자 0개, reliable/volatile QoS를 확인했다. 토픽이 보이거나 구독자가 있다는 사실만으로 로봇이 메시지를 받아 움직였다고 판정하지 않는다.
 
-속도 명령과 0 속도 복원은 [보조 ROS 입력 절차](002-first-motion.md#보조-진단--실제-ros-endpoint와-수동-입력)를 따른다. 먼저 0 명령, 다음 낮은 속도의 직진·회전, 다시 0 명령 순서로 UI 결과를 확인한다. 아직 이 장면의 ROS 주행 성공이나 전송 지연을 측정한 것은 아니다.
+외부 노드에는 [Isaac용 UDP + SUBNET 설정](../environments/README.md#외부-ros-노드에서-isaac에-연결)을 사용한다. 이 환경에서는 기본 로컬 전용 셸로 구독자를 발견해도 메시지 ACK는 받지 못했다.
+
+짧은 명령과 0 속도 복원을 한 번에 수행하려면, Play 상태에서 호스트 저장소 최상위에서 실행한다.
+
+```bash
+# 0 속도 ACK 확인 → 0.05 m/s를 벽시계 기준 2초 발행 → 0 속도 발행 및 ACK 확인
+bash scripts/isaac-ros-shell.sh python3 scripts/drive-pulse.py
+
+# 짧은 움직임을 놓친 경우, 화면을 준비한 뒤 5초간 반복
+bash scripts/isaac-ros-shell.sh python3 scripts/drive-pulse.py --seconds 5
+
+# 움직임 없이 통신만 확인
+bash scripts/isaac-ros-shell.sh python3 scripts/drive-pulse.py --linear 0 --seconds 0.2
+```
+
+이 보조 스크립트는 구독자 1개와 자기 발행자만 있는 조건을 확인하고 초기 0 명령 ACK가 없으면 이동 명령을 보내지 않는다. 기본 펄스의 초기/최종 ACK를 실제 확인했고, 공개 스크립트도 0 속도 입력으로 재검증했다. ACK는 DDS 수신 근거이며 그래프 실행·실제 이동 거리·정지 시간을 측정한 결과가 아니다. 프로세스 강제 종료나 연결 단절에 대응하는 수신측 watchdog도 아니다. 정상 종료 시 0 명령을 보내지만 중단·실패 시에는 UI Stop으로 확인한다.
+
+속도 명령과 0 속도 복원은 [보조 ROS 입력 절차](002-first-motion.md#보조-진단--실제-ros-endpoint와-수동-입력)를 따른다. 먼저 0 명령, 다음 낮은 속도의 직진·회전, 다시 0 명령 순서로 UI 결과를 확인한다. 이 장면의 ROS 전진·정지는 사용자 관찰로 확인했으며, ROS 회전·실제 속도·이동 거리·전송 지연은 아직 계측하지 않았다.
 
 ## 실패 조건과 복원
 

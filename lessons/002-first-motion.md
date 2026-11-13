@@ -1,6 +1,6 @@
 # 002 — Isaac UI에서 주행 장면 구성과 실패 조건 실험
 
-**상태: 사용자가 UI에서 최소 접촉 실험, TurtleBot3 표시·바퀴 관절·바닥 정착·직접 바퀴 구동을 확인했다. ROS 주행 연결·waypoint 제어기·명령 유효시간 정책·수신측 watchdog은 아직 구현/검증하지 않았다.** 화면과 최소 물리 장면의 최신 검증 상태는 [환경 안내](../environments/README.md)를 따른다. 아래 제어 계약과 판정 기준은 제안이며 ROS를 통한 주행을 보장하지 않는다.
+**상태: 사용자가 UI에서 최소 접촉 실험, TurtleBot3 바닥 정착·직접 바퀴 구동, 외부 ROS 명령에 따른 전진·정지를 확인했다. Odometry·clock 연결·waypoint 제어기·명령 유효시간 정책·수신측 watchdog은 아직 구현/검증하지 않았다.** 화면과 실행 환경의 최신 검증 상태는 [환경 안내](../environments/README.md)를 따른다. 아래 폐루프 제어 계약과 판정 기준은 제안이며 아직 달성한 결과가 아니다.
 
 목표는 Isaac Sim UI에서 장면·로봇·실험 조건을 직접 구성하고, Python ROS 2 노드로 목표점 주행을 연결하며, 명령 중단·pause/resume·reset에서 무엇이 잘못되는지 관측하는 것이다. Stage·Property·Action Graph와 Viewport가 주 작업 공간이다. 이 연결은 이후 카메라 기반 모델, 상태 추정, Nav2를 붙일 기준선이 된다. `001`의 talker/listener나 기초 퀴즈 완료는 선수 조건이 아니다.
 
@@ -135,7 +135,7 @@ Isaac simulation time ──────── /clock → 제어기·기록
 
 ## 보조 진단 — 실제 ROS endpoint와 수동 입력
 
-이 단계는 UI에서 주행 장면과 그래프를 구성한 뒤 수행한다. Isaac에서 Play한 뒤 호스트의 저장소 최상위에서 `bash scripts/ros-shell.sh`를 실행한다. 컨테이너 셸에서 실제 endpoint를 확인한다. 터미널 조작은 연결 확인을 보조하며 실습의 중심은 Isaac 화면이다.
+이 단계는 UI에서 주행 장면과 그래프를 구성한 뒤 수행한다. Isaac에서 Play한 뒤 호스트의 저장소 최상위에서 `bash scripts/isaac-ros-shell.sh`를 실행한다. 컨테이너 셸에서 실제 endpoint를 확인한다. 이 셸은 Isaac과 통신이 확인된 UDP + SUBNET 설정을 사용한다. 터미널 조작은 연결 확인을 보조하며 실습의 중심은 Isaac 화면이다.
 
 ```bash
 ros2 topic list -t
