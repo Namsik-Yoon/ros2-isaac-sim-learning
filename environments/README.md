@@ -24,7 +24,7 @@ bash scripts/ros-shell.sh
 
 통신 확인은 `check-ros.sh`의 PASS 출력으로 판단합니다. 실제 최종 검증 기록은 [검증 기록](validation.md)에 남깁니다. 수업 실행·이해도는 별도입니다.
 
-## B. Isaac Sim 주행 — 컨테이너 실행 검사 준비
+## B. Isaac Sim 주행 — 컨테이너 호환성 검사 통과, 화면·주행 미검증
 
 후보 조합은 Ubuntu 24.04 + ROS 2 Jazzy + Isaac Sim 6.2.0입니다. ROS workspace가 필요하면 `IsaacSim-6.2.0` 태그에 맞춥니다. [NVIDIA 공식 ROS 설치 안내](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/installation/install_ros.html)
 
@@ -34,7 +34,7 @@ bash scripts/ros-shell.sh
 
 스토리지는 공식 50GB SSD 참고치와 별도로 캐시·빌드용 여유 100GiB 이상을 프로젝트 권장치로 둡니다. 최초 진단과 달리 최신 확인에서는 `/mnt`가 별도 마운트가 아니라 루트 파일시스템을 가리킵니다. 과거 데이터 디스크의 여유 용량을 현재 사용 가능 공간으로 계산하지 않습니다. 실시간 용량과 mount 상태를 확인합니다.
 
-지원 OS로 이전하는 경로는 [이전 검토 문서](ubuntu-migration.md)에 남겨둡니다. 현재 NVIDIA Container Toolkit 1.17.8과 Docker GPU runtime가 이미 설치되어 있고, 기존 ROS 이미지의 GPU 접근을 실제 검증했습니다. 따라서 먼저 [Isaac 컨테이너 실행 검사](isaac-container.md)를 진행할 수 있습니다. Ubuntu 20.04 공식 지원과 이 PC에서의 실제 구동 여부는 구분합니다. OS·파티션·드라이버 변경은 수행하지 않았습니다.
+지원 OS로 이전하는 경로는 [이전 검토 문서](ubuntu-migration.md)에 남겨둡니다. 현재 NVIDIA Container Toolkit 1.17.8과 Docker GPU runtime가 이미 설치되어 있고, 기존 ROS 이미지의 GPU 접근을 실제 검증했습니다. [Isaac 컨테이너 실행 검사](isaac-container.md)도 실제로 실행해 `PASSED`와 종료 코드 0을 확인했습니다. 이미지는 설치됐으며 결과와 한계는 [검증 기록](validation.md)에 남겼습니다. Ubuntu 20.04 공식 지원과 이 PC에서의 실제 구동 여부는 구분합니다. OS·파티션·드라이버 변경은 수행하지 않았습니다.
 
 Compatibility Checker → 작은 물리·렌더링 장면 → WebRTC 화면 → ROS Bridge → 주행 제어 순으로 검증합니다. 현재 에이전트 셸에는 DISPLAY가 없습니다. 장면의 ROS 도메인 42, 시간·좌표·QoS 계약은 실제 연결에서 기록합니다. 컨테이너 GPU 접근 성공만으로 Isaac 실행 완료를 기록하지 않습니다.
 

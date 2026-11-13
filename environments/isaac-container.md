@@ -5,7 +5,7 @@
 ## 현재 확인한 범위
 
 - 기존 ROS 이미지에 GPU를 전달해 `nvidia-smi` 실행 성공.
-- Isaac의 Vulkan·RTX·Kit 실행은 별도의 Compatibility Checker 결과로 판정.
+- Isaac 6.2 headless Compatibility Checker에서 Vulkan GPU 인식, `PASSED`, 종료 코드 0 확인. 전체 장면의 물리·RTX 출력은 별도 검증 필요.
 - 현재 에이전트 셸은 DISPLAY가 없으므로 headless 검사 후 WebRTC 화면 연결을 검토한다.
 - 드라이버·OS 변경 없이 컨테이너로 검사한다. `/mnt` 등 데이터 경로는 실제 mount 상태를 확인한 후 선택한다.
 
@@ -26,6 +26,6 @@ ACCEPT_EULA=Y bash scripts/check-isaac.sh
 
 ## 다음 검증
 
-Compatibility Checker → 최소 물리 장면·렌더링 → WebRTC 화면 → ROS Bridge → 주행 장면 순으로 진행한다. WebRTC 포트와 캐시 권한은 해당 구성에서 명시한다. 장면이 보이기 전에는 GUI 준비 완료로 기록하지 않는다.
+Compatibility Checker는 통과했다. 다음은 최소 물리 장면·렌더링 → WebRTC 화면 → ROS Bridge → 주행 장면 순으로 진행한다. WebRTC 포트와 캐시 권한은 해당 구성에서 명시한다. 장면이 보이기 전에는 GUI 준비 완료로 기록하지 않는다.
 
 공식 참고: [시스템 요구사항](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/installation/requirements.html), [컨테이너 설치](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/installation/install_container.html), [WebRTC 클라이언트](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/installation/manual_livestream_clients.html).

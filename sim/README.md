@@ -1,6 +1,6 @@
 # Isaac Sim 장면과 실행 계약
 
-이 폴더는 장면 설정·생성 스크립트와 재현 정보를 관리한다. **Isaac Sim 설치·장면·ROS Bridge 구동은 아직 검증하지 않았다.** 현재 실제 USD 장면, 생성 스크립트, waypoint 제어기, 명령 유효시간 정책, 수신측 watchdog은 없다.
+이 폴더는 장면 설정·생성 스크립트와 재현 정보를 관리한다. **Isaac 컨테이너 호환성 검사는 통과했으나, 화면·장면·ROS Bridge 구동은 아직 검증하지 않았다.** 현재 실제 USD 장면, 생성 스크립트, waypoint 제어기, 명령 유효시간 정책, 수신측 watchdog은 없다.
 
 첫 장면은 평평한 바닥의 주행로봇이다. `/cmd_vel` 입력, `/odom` 상태, `/clock` 시간으로 Python waypoint 제어를 연결하고 명령 중단·pause/resume·reset을 실험한다. 상세 계획은 [002](../lessons/002-first-motion.md)를 따른다. 토픽 이름·타입은 제안이며 실제 선택한 로봇과 그래프에서 확정한다.
 
