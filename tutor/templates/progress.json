@@ -1,13 +1,30 @@
 {
   "schema_version": 1,
-  "current_lesson": "000-environment",
+  "current_lesson": "002-first-motion",
   "lessons": {
-    "000-environment": {"status": "not_started", "evidence": [], "learner_explanation": null, "hint_level": "none"},
-    "001-ros2-topics": {"status": "not_started", "evidence": [], "learner_explanation": null, "hint_level": "none"},
-    "002-first-motion": {"status": "not_started", "evidence": [], "learner_explanation": null, "hint_level": "none"}
+    "000-environment": {
+      "status": "not_started",
+      "evidence": [],
+      "learner_explanation": null,
+      "hint_level": "none",
+      "progression_decision": "reference_only"
+    },
+    "001-ros2-topics": {
+      "status": "not_started",
+      "evidence": [],
+      "learner_explanation": null,
+      "hint_level": "none",
+      "progression_decision": "reference_only"
+    },
+    "002-first-motion": {
+      "status": "not_started",
+      "evidence": [],
+      "learner_explanation": null,
+      "hint_level": "none"
+    }
   },
   "environment_checks": [],
   "review_topics": [],
   "open_questions": [],
-  "next_action": "환경 진단을 직접 실행하고 호스트와 컨테이너의 역할을 구분한다."
+  "next_action": "현재 환경을 점검하고 Isaac Sim 최소 장면·ROS Bridge를 준비한 뒤 주행 제어와 실패 실험으로 연결한다."
 }

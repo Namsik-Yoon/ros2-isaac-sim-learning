@@ -2,10 +2,23 @@
   "schema_version": 1,
   "language": "ko",
   "timezone": "Asia/Seoul",
-  "python_experience": "project_experience",
+  "python_experience": "experienced",
   "ros2_experience": "beginner",
   "isaac_sim_experience": "beginner",
   "session_minutes": 60,
   "optional_extra_minutes": 30,
-  "goals": ["wheeled_robot", "drone", "reproducible_github_lessons"]
+  "goals": [
+    "wheeled_robot",
+    "drone",
+    "reproducible_github_lessons"
+  ],
+  "professional_background": "AI/ML engineer",
+  "collaboration_mode": "engineering_experiments",
+  "simulator": "isaac_sim",
+  "teaching_preferences": [
+    "일반 프로그래밍·AI/ML·pub/sub·Docker 기초 설명과 확인 퀴즈를 기본 경로에서 생략한다.",
+    "실제 활용, 시스템 설계, 실패 조건, 관측 지표와 디버깅에 집중한다.",
+    "ROS 2·Isaac Sim 특유의 개념은 구현에 필요한 시점에 설명한다.",
+    "핵심 제어·실험은 직접 다룰 수 있게 하고 매 단계 질문·힌트 통과를 강제하지 않는다."
+  ]
 }

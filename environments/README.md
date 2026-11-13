@@ -2,7 +2,7 @@
 
 확인 기준일: 2026-11-13 (Asia/Seoul). 현재 상태와 아직 검증하지 않은 후보를 구분합니다.
 
-## A. ROS 2 기초 실습 — 설치 완료, 통신 시험 결과는 아래 기록
+## A. ROS 2 개발 환경 — 설치·통신 검증 완료
 
 - 호스트: Ubuntu 20.04 x86_64, Docker 28.1.1.
 - 컨테이너: Ubuntu 24.04 Noble, ROS 2 Jazzy, Python 3.12 계열.
@@ -24,7 +24,7 @@ bash scripts/ros-shell.sh
 
 통신 확인은 `check-ros.sh`의 PASS 출력으로 판단합니다. 실제 최종 검증 기록은 [검증 기록](validation.md)에 남깁니다. 수업 실행·이해도는 별도입니다.
 
-## B. Isaac Sim 주행 — 설치 전
+## B. Isaac Sim 주행 — 컨테이너 실행 검사 준비
 
 후보 조합은 Ubuntu 24.04 + ROS 2 Jazzy + Isaac Sim 6.2.0입니다. ROS workspace가 필요하면 `IsaacSim-6.2.0` 태그에 맞춥니다. [NVIDIA 공식 ROS 설치 안내](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/installation/install_ros.html)
 
@@ -32,11 +32,11 @@ bash scripts/ros-shell.sh
 
 현재 GPU는 RTX 3090 Ti 24GB, RAM은 약 128GB입니다. 버전별 GPU 지원은 Compatibility Checker와 작은 장면으로 확인합니다. 드라이버 580.126.09를 무조건 바꿔야 한다고 판정하지 않습니다. 공식 시스템 표의 드라이버는 검증 버전이며 [Omniverse 기술 요구사항](https://docs.omniverse.nvidia.com/dev-guide/latest/common/technical-requirements.html)도 함께 확인합니다.
 
-스토리지는 공식 50GB SSD 참고치와 별도로 캐시·빌드용 여유 100GiB 이상을 프로젝트 권장치로 둡니다. `/mnt`에는 별도 파일시스템의 넉넉한 여유 공간이 확인되었으나, 이것은 Ubuntu 24.04가 설치되었다는 뜻이 아닙니다. 실시간 용량은 `doctor.py`로 확인합니다.
+스토리지는 공식 50GB SSD 참고치와 별도로 캐시·빌드용 여유 100GiB 이상을 프로젝트 권장치로 둡니다. 최초 진단과 달리 최신 확인에서는 `/mnt`가 별도 마운트가 아니라 루트 파일시스템을 가리킵니다. 과거 데이터 디스크의 여유 용량을 현재 사용 가능 공간으로 계산하지 않습니다. 실시간 용량과 mount 상태를 확인합니다.
 
-사용자는 현재 PC의 Ubuntu 이전을 검토할 수 있다고 답했습니다. [이전 검토 문서](ubuntu-migration.md)에 방법·백업·부팅 준비 항목을 정리했습니다. 현재 `/mnt`에는 기존 데이터가 있으므로 이를 빈 설치 디스크로 취급하지 않습니다. 아직 OS·파티션·드라이버 변경은 수행하지 않았습니다.
+지원 OS로 이전하는 경로는 [이전 검토 문서](ubuntu-migration.md)에 남겨둡니다. 현재 NVIDIA Container Toolkit 1.17.8과 Docker GPU runtime가 이미 설치되어 있고, 기존 ROS 이미지의 GPU 접근을 실제 검증했습니다. 따라서 먼저 [Isaac 컨테이너 실행 검사](isaac-container.md)를 진행할 수 있습니다. Ubuntu 20.04 공식 지원과 이 PC에서의 실제 구동 여부는 구분합니다. OS·파티션·드라이버 변경은 수행하지 않았습니다.
 
-지원 환경 준비 후 Compatibility Checker → 작은 장면 → ROS Bridge → `/cmd_vel` 주행 순으로 검증합니다. 장면의 ROS 도메인을 42로 맞추는 것도 해당 단계에서 기록합니다.
+Compatibility Checker → 작은 물리·렌더링 장면 → WebRTC 화면 → ROS Bridge → 주행 제어 순으로 검증합니다. 현재 에이전트 셸에는 DISPLAY가 없습니다. 장면의 ROS 도메인 42, 시간·좌표·QoS 계약은 실제 연결에서 기록합니다. 컨테이너 GPU 접근 성공만으로 Isaac 실행 완료를 기록하지 않습니다.
 
 ## C. 드론 — 호환성 조사 단계
 

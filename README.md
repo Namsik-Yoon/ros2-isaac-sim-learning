@@ -1,8 +1,8 @@
 # ROS 2 · Isaac Sim 실습 노트
 
-Python으로 직접 코드를 작성하고 가상 주행로봇과 드론의 움직임을 관찰하는 한국어 학습 프로젝트입니다. ROS 2·Isaac Sim 입문자를 대상으로 하루 60분, 선택 실습 30분씩 진행합니다.
+숙련된 AI/ML 개발자가 ROS 2와 Isaac Sim으로 주행로봇·드론 시스템을 만드는 한국어 실험 저장소입니다. ROS 경험은 전제하지 않으며, 필요한 로보틱스 개념을 실제 구현과 실패 분석에 연결합니다. 하루 60분 이상의 작업을 재현 가능한 결과로 남깁니다.
 
-**첫 목표:** 내 Python 프로그램으로 주행로봇을 전진·회전·정지시키고, 실제 관측과 원리를 설명하며 다른 사람이 따라 할 수 있게 기록하기.
+**첫 목표:** Python 제어기와 Isaac Sim 주행로봇을 연결해 목표 지점 추종을 구현하고, 명령 중단·시뮬레이션 정지/재개 시 동작을 측정하기. ROS Docker 통신은 검증했으며, Isaac Sim 장면과 제어기는 아직 구현·실행 전입니다.
 
 ## 지금 시작하기
 
@@ -28,28 +28,31 @@ python3 scripts/doctor.py
 # 학습 이미지가 없다면 한 번 준비
 bash scripts/build-ros.sh
 
+# 호스트에서 통신 점검 (이미 검증했다면 생략)
+bash scripts/check-ros.sh
+
 # ROS 셸 열기
 bash scripts/ros-shell.sh
 ```
 
-컨테이너 안에서는 `printenv ROS_DISTRO`와 `ros2 --help`를 실행합니다. `exit`로 호스트에 돌아옵니다. 로컬 설정 담당자가 이미 이미지를 빌드했다면 다시 빌드할 필요는 없습니다.
+ROS 셸에서 `exit`하면 호스트로 돌아옵니다. 이미 이미지를 빌드하고 점검했다면 반복할 필요는 없습니다. Isaac Sim 실행 준비 상태는 [환경 안내](environments/README.md)를 확인합니다.
 
-수업은 [000 환경 이해](lessons/000-environment.md) → [001 노드·토픽](lessons/001-ros2-topics.md) → [002 Isaac 첫 이동](lessons/002-first-motion.md) 순서입니다. 002는 Isaac GUI·장면 준비 이후 진행하는 초안입니다.
+기본 경로는 **환경 준비 → [002 주행 제어와 실패 실험](lessons/002-first-motion.md)**입니다. [000 환경 점검](lessons/000-environment.md)·[001 ROS 통신](lessons/001-ros2-topics.md)은 선택 참고자료이며 선수 퀴즈가 아닙니다. 002는 아직 실구동 검증 전인 설계·실행 계획입니다.
 
-## 튜터와 이어서 공부하기
+## 작업 이어가기
 
-이 프로젝트 폴더를 연 Codex 대화에서 `오늘 수업 시작`, `힌트만 줘`, `왜 이렇게 되는지 설명해줘`, `오늘 수업 마무리`라고 요청할 수 있습니다.
+이 프로젝트 폴더에서 `이어서 진행`, `이 실패를 재현해줘`, `설계 선택을 비교해줘`, `오늘 결과 기록`처럼 요청하면 현재 상태와 다음 실행 가능한 작업을 이어갑니다. 핵심 제어·실험 코드는 직접 수정해 볼 수 있게 작은 단위로 구성합니다.
 
 [AGENTS.md](AGENTS.md)가 프로젝트 지침이며 [튜터 규칙](tutor/rules.md)과 개인 `.learning/` 기록을 읽도록 지정합니다. Codex는 실행 시작 시 프로젝트 지침을 발견하므로 새 대화에서도 이 프로젝트를 작업 위치로 사용하세요. 다른 프로젝트나 일반 채팅으로 자동 전파되는 전역 설정은 아닙니다. [OpenAI 공식 안내](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
 
-튜터는 한 번에 질문 하나를 하고, 학습자의 실행과 설명을 구분해 기록합니다. 에이전트가 수행한 환경 시험은 학습자의 수업 완료로 기록하지 않습니다. 개인 기록은 Git에 올라가지 않으므로 다른 PC에서는 별도로 옮기거나 새로 시작해야 합니다.
+매 단계 기초 확인 질문을 하지 않습니다. 필요한 ROS 개념, 실제 실패 원인, 측정과 설계 판단에 집중합니다. 에이전트의 환경 시험과 사용자의 실제 실험을 구분해 기록합니다. 개인 기록은 Git에 올라가지 않으므로 다른 PC에서는 별도로 옮겨야 합니다.
 
 ## 찾아보기
 
 | 위치 | 내용 |
 | --- | --- |
-| [CURRICULUM.md](CURRICULUM.md) | 주행 → 센서 → 자율주행 → 드론 학습 계획 |
-| [lessons/](lessons/README.md) | 직접 따라 할 수업과 성공 기준 |
+| [CURRICULUM.md](CURRICULUM.md) | 주행 → 센서·추론 → 자율주행 → 드론 개발 계획 |
+| [lessons/](lessons/README.md) | 재현 가능한 실험과 측정 기준 |
 | [environments/](environments/README.md) | 검증된 ROS 환경과 Isaac 준비 상태 |
 | `ros2_ws/src/` | 직접 개발할 ROS 2 패키지 |
 | [sim/](sim/README.md) | 장면 준비와 재현 원칙 |

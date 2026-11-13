@@ -1,33 +1,42 @@
-# 002 — Isaac Sim에서 전진·회전·정지 확인하기
+# 002 — Isaac 주행로봇 폐루프 제어와 실패 조건
 
-**상태: 실행 전 초안. Isaac Sim 장면 생성과 실제 로봇 구동은 이 프로젝트에서 아직 검증하지 않았습니다.** 예상 시간은 장면 준비 이후 60~90분입니다. 설치·장면 구성 시간은 별도입니다.
+**상태: 설계·실행 준비 문서. Isaac Sim 설치, 장면 실행, waypoint 제어기, 명령 유효시간 정책, 수신측 watchdog은 아직 구현/검증하지 않았다.** 아래 계약과 판정 기준은 제안이며 현재 로봇의 동작을 보장하지 않는다.
 
-목표는 ROS 2 속도 명령이 가상 로봇 움직임으로 이어지는 과정을 확인하는 것입니다. 처음에는 명령행으로 연결을 점검하고, 다음 Python 실습에서 같은 메시지를 사용자가 직접 작성합니다.
+목표는 Python ROS 2 노드가 Isaac Sim의 주행로봇을 목표점으로 보내고, 명령 중단·pause/resume·reset에서 무엇이 잘못되는지 관측하는 것이다. 이 연결은 이후 카메라 기반 모델, 상태 추정, Nav2를 붙일 기준선이 된다. `001`의 talker/listener나 기초 퀴즈 완료는 선수 조건이 아니다.
 
 ## 선행 조건과 시작 상태
 
-다음 조건이 모두 준비된 뒤 진행합니다.
+- Isaac Sim 화면과 작은 물리 장면을 실제 실행했다. 지원 환경인지, 공식 지원 밖의 컨테이너 실험인지 환경 기록에 구분한다.
+- 설치 버전의 ROS 2 Bridge와 주행 가능한 로봇·바닥·제어 연결이 준비됐다.
+- Isaac과 Docker ROS 노드의 도메인·전송 설정을 맞추고 실제 endpoint를 확인했다.
+- 초기 장면을 저장했으며, 동시 이동 명령 발행자가 없다.
 
-- [001](001-ros2-topics.md)에서 발행자·구독자·메시지 타입을 구분했다.
-- 지원되는 호스트 환경에 Isaac Sim이 설치되고, 실제로 화면과 작은 물리 장면을 실행했다.
-- 설치한 Isaac Sim 버전에 맞는 ROS 2 Bridge가 활성화되어 있다.
-- 주행 가능한 로봇과 평평한 바닥이 있고, `/cmd_vel`을 받는 제어 연결이 준비되어 있다.
-- ROS 2 터미널과 Isaac Sim이 같은 ROS 도메인을 사용하며 서로 검색된다.
-- 다른 이동 명령 발행자는 종료했고, 초기 위치로 돌아갈 장면 사본이 있다.
+현재 ROS Docker의 메시지 송수신은 검증됐다. 이 사실로 Isaac의 GUI·GPU·Bridge 연결이 검증된 것은 아니다. 환경 상태는 [환경 안내](../environments/README.md)에 기록한다.
 
-현재 준비 참고 자료는 [Isaac Sim 6.2.0 TurtleBot 주행 튜토리얼](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/ros2_tutorials/tutorial_series/tutorial_ros2_drive_turtlebot.html)입니다(문서 확인: 2026-11-13). 이 자료는 주행 가능한 TurtleBot과 ROS 2 설치를 선행 조건으로 둡니다. 장면을 준비할 때 실제 설치 버전, 자산 경로, 설정 방법, 저장한 장면 경로를 기록합니다. 검증 전에는 이 문서가 로봇 장면을 자동으로 만드는 완성 절차라고 보지 않습니다.
+장면 구성에는 공식 [TurtleBot 주행](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/ros2_tutorials/tutorial_series/tutorial_ros2_drive_turtlebot.html), [TF·odometry](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/ros2_tutorials/tutorial_series/tutorial_ros2_tf.html), [simulation clock](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/ros2_tutorials/tutorial_series/tutorial_ros2_clock.html)을 기준으로 삼는다(확인: 2026-11-13). 정확한 자산 경로·그래프·시작 위치는 실제 장면을 구성하며 [sim/](../sim/README.md)에 남긴다. 아직 자동으로 실행할 장면 스크립트는 없다.
 
-장면의 제어 연결은 다음 역할을 합니다. 세부 노드 이름과 설정은 설치 버전의 공식 튜토리얼에서 확인합니다.
+## 만들 연결과 제안 계약
 
 ```text
-ROS 2 속도 메시지 → Bridge의 구독 → 바퀴 속도로 변환 → 관절 구동 → 가상 로봇 이동
+목표점 → Python 제어기 → /cmd_vel → Isaac Bridge → 바퀴/물리
+                    ↑                             │
+                    └──────── /odom ───────────────┘
+Isaac simulation time ──────── /clock → 제어기·기록
 ```
 
-## 직접 실행
+| 인터페이스 | 제안 | 연결 때 확인할 사항 |
+| --- | --- | --- |
+| `/cmd_vel` | `geometry_msgs/msg/Twist`, 전진 `linear.x`, 회전 `angular.z` | 실제 타입·구독 endpoint·좌표·단위·동시 발행자 |
+| `/odom` | `nav_msgs/msg/Odometry`, 목표점과 같은 기준 좌표 사용 | `header.frame_id`, `child_frame_id`, timestamp, pose/velocity의 출처 |
+| `/clock` | `rosgraph_msgs/msg/Clock`, 제어·관측 노드에 `use_sim_time=true` | 발행자 하나, pause/stop/reset 시 동작, 시간 역행 여부 |
+| 시작 설정 | 제어 10 Hz, 속도 상한 0.1 m/s·0.3 rad/s | 물리 step·odom 발행률과 함께 기록; 성능 보장 수치 아님 |
+| 목표 판정 | 예: 위치 오차 0.10 m 이하에서 정지 | 실제 로봇 크기·관측 노이즈에 맞춰 확정; 최종 방향은 첫 실험에서 제외 |
 
-### 1. 연결과 메시지 형식 확인하기
+첫 `/odom`은 시뮬레이터 pose에서 생성하는 참값 기반 데이터를 사용할 수 있다. 이는 바퀴 인코더·IMU로 추정한 odometry와 다르다. 사용한 출처를 기록하고, 이 기준선 결과를 실제 센서 기반 주행 성능으로 해석하지 않는다. ROS frame 이름만 같다고 장면의 world 원점과 odom 원점이 같다고 가정하지 않는다.
 
-Isaac Sim에서 준비한 장면을 실행합니다. 저장소 최상위의 호스트 터미널에서 `bash scripts/ros-shell.sh`를 실행한 뒤, 컨테이너 셸에서 아래 명령을 실행합니다.
+## 첫 60분 — 연결과 수동 기준선
+
+Isaac에서 준비한 장면을 Play한 뒤 호스트의 저장소 최상위에서 `bash scripts/ros-shell.sh`를 실행한다. 컨테이너 셸에서 실제 endpoint를 확인한다.
 
 ```bash
 ros2 topic list -t
@@ -36,71 +45,78 @@ ros2 topic info /cmd_vel --verbose
 ros2 interface show geometry_msgs/msg/Twist
 ```
 
-다음 명령 예제는 토픽이 **`/cmd_vel`**, 타입이 **`geometry_msgs/msg/Twist`**인 경우에만 적용합니다. 이름이 다르거나 `TwistStamped` 등 다른 타입이면 먼저 튜터와 실제 연결을 확인해 실습을 수정합니다. 구독자 정보에서 Isaac Sim 측 수신 연결이 있는지 확인합니다. 관찰용 `echo`의 구독만 있다고 로봇 연결이 되었다고 판단하지 않습니다.
+아래 명령은 실제 입력이 `/cmd_vel`, `geometry_msgs/msg/Twist`인 경우에만 적용한다. `TwistStamped`나 다른 이름을 쓰는 장면이면 명령과 계약을 수정한다. 관찰용 구독자가 있다는 사실만으로 Isaac의 수신 연결이 확인되지는 않는다.
 
-이 장면에서는 `linear.x`를 전진 속도(m/s), `angular.z`를 회전 속도(rad/s)로 사용합니다. 이것은 속도 명령이므로 “0.1m 이동”을 뜻하지 않습니다.
-
-### 2. 정지 명령부터 확인하기
-
-아래 명령을 실행해 모든 속도를 0으로 보냅니다. `--rate 10`은 1초에 10회 반복 발행한다는 뜻입니다.
+먼저 정지 입력을 보내고 실제 상태를 확인한다.
 
 ```bash
 ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
 ```
 
-로봇이 정지 상태임을 확인한 뒤 `Ctrl+C`로 발행을 끝냅니다. 명령행 발행 문법은 [ROS 2 Jazzy 공식 교재](https://github.com/ros2/ros2_documentation/blob/jazzy/source/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Topics/Understanding-ROS2-Topics.rst)를 참고합니다.
-
-### 3. 전진 후 정지하기
-
-실행 전에 로봇이 어느 방향으로 움직일지 예상하고, 정지 명령을 바로 다시 사용할 수 있도록 준비합니다.
+발행을 `Ctrl+C`로 끝낸 뒤, 짧은 전진 입력을 보낸다.
 
 ```bash
 ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.1, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
 ```
 
-짧게 움직임을 관찰한 뒤 `Ctrl+C`를 누르고 **2단계의 0 속도 명령을 즉시 실행**합니다. 로봇의 정지를 확인하고 정지 발행도 `Ctrl+C`로 종료합니다. 발행 중단 자체가 정지 명령은 아니며, 마지막 속도를 계속 적용하는 장면일 수 있습니다. 정지 명령이 반영되지 않으면 시뮬레이션을 일시정지하고 연결을 점검합니다.
-
-### 4. 회전 후 정지하기
+다시 `Ctrl+C` 후 위의 **0 속도 명령을 즉시 발행**해 정지시킨다. 회전 기준선도 같은 정지 절차로 실행한다.
 
 ```bash
 ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.3}}'
 ```
 
-짧게 회전을 관찰하고, 다시 `Ctrl+C` → 2단계의 0 속도 명령 → 실제 정지 확인 순서로 마칩니다. 두 이동 명령을 동시에 실행하지 않습니다.
+명령 문법은 [ROS 2 Jazzy 공식 문서](https://github.com/ros2/ros2_documentation/blob/jazzy/source/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Topics/Understanding-ROS2-Topics.rst)를 따른다. 발행 종료는 정지 메시지가 아니다. 정지 입력이 반영되지 않으면 Isaac을 pause하고 제어 경로를 확인한다.
 
-## 예상 관찰과 성공 기준
+이 회차의 산출물은 실제 토픽·타입·QoS·frame·주기, 장면/버전, 전진/회전/정지 화면과 대응하는 odometry 관측이다. odometry와 clock의 구체적인 수집 절차는 장면 연결을 검증한 뒤 추가한다. 현재 문서만으로 폐루프 제어가 완료되지는 않는다.
 
-예상 관찰은 전진 명령에서 앞으로 이동하고, 회전 명령에서 방향이 바뀌며, 0 속도 명령에서 정지하는 것입니다. 화면의 카메라 방향 때문에 좌우가 헷갈리면 로봇의 기준 방향을 확인합니다.
+## 다음 60분 — waypoint 기준선 구현
 
-- [ ] 사용자가 실제 토픽 이름·타입·Isaac Sim 구독을 확인했다.
-- [ ] 사용자가 전진·회전·정지를 각각 직접 실행하고 화면에서 확인했다.
-- [ ] 사용한 장면 경로와 버전, 명령, 결과 화면을 기록했다.
-- [ ] 속도 명령과 이동 결과를 구분해 설명했다.
+핵심 구현은 개발자가 직접 다룬다. 제공할 ROS 패키지 scaffold와 실행 명령은 아직 없다.
 
-토픽에 값이 보인다는 사실은 명령 전송의 근거입니다. 로봇이 움직였다는 근거는 별도로 남깁니다. 이후 위치 센서 수업에서는 화면 관찰에 더해 위치 데이터를 비교합니다.
+1. odometry에서 현재 평면 위치와 heading을 읽고, 같은 좌표계의 목표점을 사용한다.
+2. 목표 방향 오차와 거리로 선속도·각속도를 계산하고 상한을 둔다. 큰 방향 오차에서 전진을 줄이는 등의 선택을 코드와 설정으로 남긴다.
+3. 목표 허용 오차에 도달하면 0 속도를 보내고, 도달 시간·최종 오차·궤적을 기록한다.
+4. odometry가 없거나 오래되었을 때 이동을 금지하는 조건을 만든다. 정상 종료의 정지 메시지만으로 비정상 종료를 처리할 수 있다고 보지 않는다.
+5. 한 목표점에서 기준선을 얻은 뒤 시작 방향이나 목표점 하나를 바꾸어 재현한다.
 
-## 초기화와 흔한 오류
+제어 주기·센서 age·성능 지표에 사용한 시간 기준을 명시한다. simulator timestamp와 wall time을 그대로 빼면 지연 지표가 되지 않는다. 별도 계측 없이 메시지 수신 간격을 전체 통신 지연이라고 부르지 않는다.
 
-이동 명령 발행을 끝내고 0 속도를 보내 정지를 확인한 뒤 시뮬레이션을 정지합니다. 저장한 초기 장면을 다시 열고 시작 위치를 확인합니다. 장면을 다시 실행하기 전에 남아 있는 이동 발행자가 없는지 확인합니다.
+## 실패 주입 — 정상 동작 뒤 별도 60분
 
-| 증상 | 확인 순서 |
+다음은 실험 계획이며, 대응 기능은 아직 없다. 각 실험을 초기 장면에서 독립 실행하고 변경 전후 결과를 남긴다.
+
+| 조건 | 관측할 것 | 구현·검증할 대응 |
+| --- | --- | --- |
+| 이동 중 명령 발행 프로세스 종료 | 마지막 명령 유지 여부, 중단 후 이동 거리·정지 시간 | 발행 프로세스와 독립적인 수신측 watchdog, timeout 후 0 입력 |
+| odometry 발행 중단 | 오래된 pose로 계속 주행하는지 | 관측 freshness 판정과 정지 상태 전이 |
+| Isaac pause 후 resume | 제어 타이머 정지 여부, 재개 직후 오래된 명령 적용 여부 | 재개 시 관측·명령 유효성 확인 후 이동 재허용 |
+| 장면 reset | pose·시간 변화, 이전 목표/누적 상태 잔존 | episode 구분, 제어 상태 초기화, 새 관측 이후 재시작 |
+
+[`Twist` 메시지](https://github.com/ros2/common_interfaces/blob/jazzy/geometry_msgs/msg/Twist.msg)에는 발행 시각이나 TTL 필드가 없다. 수신측의 마지막 수신 시각으로 연결 중단을 감지할 수는 있지만, 늦게 도착한 메시지의 원래 생성 시각까지 알 수는 없다. 오래된 명령 거부가 필요해지면 timestamp를 포함한 입력이나 별도 계약을 검토한다. 현재 Bridge가 이런 정책을 제공한다고 가정하지 않는다.
+
+watchdog의 시간 기준도 명시해야 한다. ROS simulation time은 pause 동안 멈출 수 있으므로 외부 연결 단절 감지는 monotonic wall clock을 고려한다. Isaac 내부 로직이 pause 동안 실행되지 않으면 timeout이 지나도 그 즉시 액추에이터를 갱신할 수 없으므로, resume의 첫 물리 step 전에 유효성을 재평가하는 연결까지 검증한다.
+
+Isaac의 simulation time은 공식 예제에서 기본적으로 stop/play 후에도 단조 증가한다. `resetOnStop=true`일 때는 0으로 되돌릴 수 있다. reset이 항상 시간 역행을 만든다고 가정하지 말고 실제 설정·관측을 남긴다. 시간 역행이 없더라도 pose reset에 따른 제어 상태 초기화는 필요하다. [공식 clock 동작](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/ros2_tutorials/tutorial_series/tutorial_ros2_clock.html)
+
+## 성공 기준과 기록
+
+- [ ] 실제 장면에서 명령·odometry·clock 경로를 확인하고 연결 설정을 기록했다.
+- [ ] waypoint 제어 코드와 실행 방법을 커밋하고, 제안한 목표 허용 오차에 대한 실제 결과를 남겼다.
+- [ ] 명령 중단·pause/resume·reset의 재현 절차와 관측값을 남겼다. 자동 정지 기능이 없으면 그대로 실패/미구현으로 표시했다.
+- [ ] 수신측 watchdog을 구현한 경우, 발행 프로세스가 사라져도 작동하는지 별도 검증했다.
+- [ ] 초기 상태에서 다시 실행할 수 있고, 성공하지 못한 조건과 사용한 시간 기준을 기록했다.
+
+질문은 결과를 검토할 때 필요한 설계 판단에 한해 한다. 예를 들어 “pause 중 timeout이 발생했을 때 resume 시 이전 명령을 적용할지, 새 명령을 기다릴지”는 시스템 정책이다. 답변을 기초 퀴즈로 요구하거나 실행을 막는 관문으로 삼지 않는다.
+
+## 초기화와 진단
+
+발행 프로세스를 종료하고 0 속도로 실제 정지를 확인한 뒤 시뮬레이션을 정지한다. 초기 장면을 다시 열고 pose·clock 정책·남은 발행자를 확인한다. 제어기 상태 초기화 절차는 구현과 함께 추가한다.
+
+| 증상 | 먼저 구분할 원인 |
 | --- | --- |
-| `/cmd_vel`이 없음 | 장면 실행 여부 → Bridge → 실제 토픽 이름 → 도메인·통신 설정 |
-| 구독자 수가 0 | 로봇의 Bridge 구독 노드와 장면 실행 여부 |
-| 타입이 다름 | 현재 타입과 제어기의 입력 확인; 위 명령을 그대로 실행하지 않기 |
-| 메시지는 보이지만 움직이지 않음 | 시뮬레이션 재생 → 제어 연결 → 대상 관절 → 지면 접촉 |
-| 명령을 끝내도 계속 움직임 | 0 속도 발행과 실제 정지 확인; 안 되면 일시정지 |
-| 명령과 다른 움직임 | 동시에 발행 중인 다른 노드와 바퀴·좌표 설정 확인 |
-
-## 이해 확인 — 한 질문씩
-
-튜터는 다음 질문 하나를 묻고 답을 기다립니다.
-
-> 전진 명령의 `linear.x: 0.1`은 “0.1m만 이동하라”는 뜻일까요? 화면에서 본 움직임과 정지 방법을 근거로 설명해 주세요.
-
-다음 Python 수업의 직접 구현 미션은 다음과 같습니다. 완성 코드는 이 단계에서 대신 작성하지 않습니다.
-
-- `/cmd_vel`에 맞는 메시지 타입을 골라 발행자 만들기
-- 타이머에서 원하는 속도를 채워 메시지 보내기
-- 사용자 종료와 정상 종료 시 정지 메시지를 보내도록 설계하기
-- 속도나 발행 주기 한 가지를 바꾸고 예상과 실제 결과 비교하기
+| 토픽 또는 Isaac endpoint가 없음 | Play 여부, Bridge 활성화, 도메인·전송 설정, 이름 |
+| 메시지는 보이지만 움직이지 않음 | 실제 수신 endpoint·QoS, 바퀴/관절 연결, 지면 접촉 |
+| 목표 반대 방향으로 움직임 | 좌표·heading 변환, frame 원점, 바퀴 부호, 중복 발행 |
+| 화면은 맞는데 제어기가 정지/발산 | odometry timestamp·출처, 제어/관측 주기, simulation time |
+| 발행 종료 후 계속 움직임 | 수신측 timeout의 존재와 실행 위치; 0 명령 또는 pause로 중단 |
+| reset 후 갑자기 움직임 | 이전 명령·목표·누적 상태 잔존, pose/시간 점프 처리 |

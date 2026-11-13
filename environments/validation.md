@@ -14,6 +14,8 @@
 | 별도 컨테이너 간 실제 송수신 | `Hello World: 0` 수신 확인 |
 | 대화형 셸 진입·ROS 접근·종료 | 확인 |
 | 실행 사용자 | 호스트 UID/GID로 실행 |
+| NVIDIA Container Toolkit / Docker GPU 전달 | 기존 런타임에서 ROS 이미지의 `nvidia-smi` 실행 성공, RTX 3090 Ti 확인 |
+| Isaac Sim 6.2 이미지 / Compatibility Checker | 이미지 다운로드 진행, 검사 미실행 |
 | Isaac Sim GUI·주행 | 아직 설치·검증하지 않음 |
 | 드론 환경 | 조사 단계, 아직 설치·검증하지 않음 |
 
