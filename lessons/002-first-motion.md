@@ -41,6 +41,25 @@
 
 ## 다음 작업 — UI에서 주행 그래프 구성
 
+### TurtleBot3 배치
+
+최소 접촉 실험 다음에는 기존 바닥을 유지하고 로봇을 추가한다. 공식 6.2 [주행로봇 자산 목록](https://docs.isaacsim.omniverse.nvidia.com/6.2.0/assets/usd_assets_robots_wheeled.html#turtlebot)의 Multiphysics 경로를 사용한다. 아래 최상위 USD와 base·physics·physx payload는 서버 HTTP 200 및 텍스트 내용을 확인했다. UI 로딩·물리 실행·ROS 연결은 아직 검증하지 않았다. 같은 문서의 기존 `Robots/Turtlebot/Turtlebot3/turtlebot3_burger.usd` 경로는 404를 반환했으므로 사용하지 않는다.
+
+1. Stop하고 상자의 `Collision Enabled`를 켠다. `File > Save As`로 `/workspace/turtlebot-drive.usda`에 작업 사본을 저장한다.
+2. 사본의 Stage에서 `/World/TestBody`만 삭제한다. `/World/Ground`, `/World/PhysicsScene`, 조명은 유지한다.
+3. 아래 Content Browser에서 `Isaac Sim > Robots_Multiphysics > Turtlebot > Turtlebot3 > turtlebot3_burger > turtlebot3_burger.usda`를 찾아 Viewport로 끌어 넣는다. 폴더 구성이 다르면 Content Browser 주소창에서 아래 자산 폴더 URL을 사용한다. URL은 컨테이너 파일 경로가 아니라 NVIDIA 자산 서버 주소다.
+
+   ```text
+   https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/6.2/Isaac/Robots_Multiphysics/Turtlebot/Turtlebot3/turtlebot3_burger/
+   ```
+
+4. Stop 상태에서 로봇의 표시 여부와 추가된 루트 prim의 실제 경로를 확인하고 사본을 저장한다. 이번 단위 작업은 로봇 배치까지다.
+5. 이후 Play 전에 로봇의 `Physics` variant와 articulation을 확인한다. 원본에는 `physics`, `physx`, `mujoco`, `none` variant가 있으며, 이 프로젝트의 PhysX에 맞는 설정과 실제 적용 결과를 확인해야 한다. `ROS`와 `Sensors`의 원본 기본값은 `none`이다. 화면에 모델이 보인다는 사실만으로 물리·ROS가 설정됐다고 보지 않는다. UI의 정확한 variant 선택 위치와 물리 실행은 다음 검증 대상이다.
+
+이 사본은 NVIDIA 원본 자산을 참조한다. 다운받은 원본·캐시 전체를 Git에 복사하지 않고, 공개할 자체 장면에는 참조 경로와 변경값을 남긴다.
+
+### 제어 연결
+
 주행 가능한 로봇 자산을 로드하고 바닥 접촉과 초기 pose를 확인한다. Stage에서 로봇의 루트 prim을 선택하고 `Window > Graph Editors > Action Graph`에서 그래프를 연다. 공식 TurtleBot 예제의 prim 이름·바퀴 치수를 다른 로봇에 그대로 복사하지 않는다.
 
 그래프에서 **ROS 입력 → 차체 속도 → 좌우 바퀴 속도 → articulation 제어**의 연결을 눈으로 따라가며 아래 설정을 실제 선택한 로봇에 맞춘다. 그래프와 로봇을 저장한 다음 Play로 연결을 검증한다.
