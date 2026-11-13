@@ -1,0 +1,30 @@
+# Personal learning state and credentials
+.learning/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ROS / Python build products
+build/
+install/
+log/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Simulation caches, recordings and downloaded assets
+.cache/
+downloads/
+recordings/
+*.bag
+*.db3
+*.mcap
+*.mp4
+*.zip
+*.tar
+*.tar.gz
+.DS_Store

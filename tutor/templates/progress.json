@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "current_lesson": "000-environment",
+  "lessons": {
+    "000-environment": {"status": "not_started", "evidence": [], "learner_explanation": null, "hint_level": "none"},
+    "001-ros2-topics": {"status": "not_started", "evidence": [], "learner_explanation": null, "hint_level": "none"},
+    "002-first-motion": {"status": "not_started", "evidence": [], "learner_explanation": null, "hint_level": "none"}
+  },
+  "environment_checks": [],
+  "review_topics": [],
+  "open_questions": [],
+  "next_action": "환경 진단을 직접 실행하고 호스트와 컨테이너의 역할을 구분한다."
+}

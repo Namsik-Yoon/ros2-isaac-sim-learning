@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "language": "ko",
+  "timezone": "Asia/Seoul",
+  "python_experience": "project_experience",
+  "ros2_experience": "beginner",
+  "isaac_sim_experience": "beginner",
+  "session_minutes": 60,
+  "optional_extra_minutes": 30,
+  "goals": ["wheeled_robot", "drone", "reproducible_github_lessons"]
+}
